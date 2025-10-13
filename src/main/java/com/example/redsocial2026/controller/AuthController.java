@@ -4,6 +4,8 @@ import com.example.redsocial2026.model.Usuario;
 import com.example.redsocial2026.security.JwtTokenUtil;
 import com.example.redsocial2026.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,10 +14,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Controlador REST para autenticación y registro de usuarios.
- * Los endpoints comienzan con /api/auth
- */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -29,55 +27,46 @@ public class AuthController {
     @Autowired
     private JwtTokenUtil jwtTokenUtil;
 
-    /**
-     * Endpoint para registrar un nuevo usuario.
-     * Método: POST
-     * URL: /api/auth/register
-     */
     @PostMapping("/register")
-    public Usuario registrar(@RequestBody Usuario usuario) {
-        return usuarioService.guardarUsuario(usuario);
+    public ResponseEntity<?> registrar(@RequestBody Usuario usuario) {
+        try {
+            Usuario saved = usuarioService.guardarUsuario(usuario);
+            return ResponseEntity.ok(saved);
+        } catch (DataIntegrityViolationException e) {
+            // Username duplicado (constraint UNIQUE)
+            return ResponseEntity
+                    .badRequest()
+                    .body(Map.of("message", "Usuario ya existe"));
+        }
     }
 
-    /**
-     * Endpoint para autenticar usuarios y generar JWT.
-     * Método: POST
-     * URL: /api/auth/login
-     * 
-     * Recibe JSON con username y password y devuelve:
-     * {
-     *   "token": "...JWT...",
-     *   "usuario": "nombreUsuario"
-     * }
-     */
     @PostMapping("/login")
-    public Map<String, Object> login(@RequestBody Usuario usuario) {
-        // Autenticar usuario usando AuthenticationManager
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(usuario.getUsername(), usuario.getPassword())
-        );
+    public ResponseEntity<?> login(@RequestBody Usuario usuario) {
+        try {
+            Authentication auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(usuario.getUsername(), usuario.getPassword())
+            );
 
-        // Obtener detalles del usuario autenticado
-        UserDetails userDetails = (UserDetails) auth.getPrincipal();
+            UserDetails userDetails = (UserDetails) auth.getPrincipal();
+            String token = jwtTokenUtil.generateToken(userDetails.getUsername());
 
-        // Generar token JWT
-        String token = jwtTokenUtil.generateToken(userDetails.getUsername());
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", token);
+            response.put("usuario", userDetails.getUsername());
+            return ResponseEntity.ok(response);
 
-        // Crear respuesta
-        Map<String, Object> response = new HashMap<>();
-        response.put("token", token);
-        response.put("usuario", userDetails.getUsername());
-        return response;
+        } catch (BadCredentialsException e) {
+            // Credenciales inválidas
+            return ResponseEntity
+                    .status(401)
+                    .body(Map.of("message", "Usuario o contraseña incorrectos"));
+        } catch (DisabledException e) {
+            return ResponseEntity
+                    .status(403)
+                    .body(Map.of("message", "Usuario deshabilitado"));
+        }
     }
 
-    /**
-     * Endpoint de prueba para verificar que la API funciona
-     * y que la seguridad JWT está activa.
-     * Método: GET
-     * URL: /api/auth/test
-     * Este endpoint requiere un token válido en el header:
-     * Authorization: Bearer <token>
-     */
     @GetMapping("/test")
     public String test() {
         return "API segura funcionando con JWT!";
