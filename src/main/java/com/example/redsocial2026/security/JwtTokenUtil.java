@@ -28,14 +28,17 @@ public class JwtTokenUtil {
     /**
      * Genera un token JWT con el username como sujeto.
      */
-    public String generateToken(String username) {
+    public String generateToken(Long id, String username, String email) {
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(username)                 // sigue siendo el username
+                .claim("id", id)                      // añadimos el id
+                .claim("email", email)                // añadimos el email
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS512) // API moderna
+                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
                 .compact();
     }
+
 
     /**
      * Extrae el username del token JWT.
