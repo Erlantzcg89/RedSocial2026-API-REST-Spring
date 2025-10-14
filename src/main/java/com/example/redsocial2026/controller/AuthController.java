@@ -3,6 +3,9 @@ package com.example.redsocial2026.controller;
 import com.example.redsocial2026.model.Usuario;
 import com.example.redsocial2026.security.JwtTokenUtil;
 import com.example.redsocial2026.service.UsuarioService;
+
+import jakarta.validation.Valid;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +31,7 @@ public class AuthController {
     private JwtTokenUtil jwtTokenUtil;
 
     @PostMapping("/register")
-    public ResponseEntity<?> registrar(@RequestBody Usuario usuario) {
+    public ResponseEntity<?> registrar(@Valid @RequestBody Usuario usuario) {
         try {
             Usuario saved = usuarioService.guardarUsuario(usuario);
             return ResponseEntity.ok(saved);
