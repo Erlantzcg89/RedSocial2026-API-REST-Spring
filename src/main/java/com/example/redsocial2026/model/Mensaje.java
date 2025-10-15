@@ -14,11 +14,6 @@ public class Mensaje {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Relación con categoría
-    @ManyToOne
-    @JoinColumn(name = "categoria_id", nullable = false)
-    private Categoria categoria;
-
     // Relación con topic
     @ManyToOne
     @JoinColumn(name = "topic_id", nullable = false)

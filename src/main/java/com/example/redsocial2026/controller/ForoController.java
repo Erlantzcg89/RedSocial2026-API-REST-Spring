@@ -1,10 +1,8 @@
 package com.example.redsocial2026.controller;
 
-import com.example.redsocial2026.model.Categoria;
 import com.example.redsocial2026.model.Mensaje;
 import com.example.redsocial2026.model.Topic;
 import com.example.redsocial2026.model.Usuario;
-import com.example.redsocial2026.service.CategoriaService;
 import com.example.redsocial2026.service.MensajeService;
 import com.example.redsocial2026.service.TopicService;
 import com.example.redsocial2026.service.UsuarioService;
@@ -27,8 +25,6 @@ public class ForoController {
     @Autowired
     private UsuarioService usuarioService;
 
-    @Autowired
-    private CategoriaService categoriaService;
 
     @Autowired
     private TopicService topicService;
@@ -39,10 +35,6 @@ public class ForoController {
             // Validar usuario
             Usuario usuario = usuarioService.buscarPorId(mensaje.getUsuario().getId());
             mensaje.setUsuario(usuario);
-
-            // Validar categoria
-            Categoria categoria = categoriaService.buscarPorId(mensaje.getCategoria().getId());
-            mensaje.setCategoria(categoria);
 
             // Validar topic
             Topic topic = topicService.buscarPorId(mensaje.getTopic().getId());
