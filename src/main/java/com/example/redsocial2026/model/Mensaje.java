@@ -25,11 +25,17 @@ public class Mensaje {
     private Usuario usuario;
 
     // Fecha y hora de publicación
-    @Column(nullable = false)
-    private LocalDateTime date = LocalDateTime.now();
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime date;
 
     // Mensaje del post
     @Column(nullable = false, columnDefinition = "TEXT")
     @NotBlank(message = "El mensaje no puede estar vacío")
     private String mensaje;
+
+    // Se ejecuta automáticamente antes de insertar por primera vez
+    @PrePersist
+    protected void onCreate() {
+        this.date = LocalDateTime.now();
+    }
 }
