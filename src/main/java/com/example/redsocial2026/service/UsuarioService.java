@@ -30,9 +30,23 @@ public class UsuarioService {
         return usuarioRepository.save(usuario);
     }
     
-    // Método para buscar un usuario por username
+    /**
+     * Método para buscar un usuario por username
+     * @param username Nombre de usuario
+     * @return Usuario encontrado
+     */
     public Usuario buscarPorUsername(String username) {
         return usuarioRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    }
+
+    /**
+     * Método para buscar un usuario por ID
+     * @param id ID del usuario
+     * @return Usuario encontrado
+     */
+    public Usuario buscarPorId(Long id) {
+        return usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con id: " + id));
     }
 }
