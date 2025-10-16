@@ -5,6 +5,8 @@ import com.example.redsocial2026.repository.CategoriaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class CategoriaService {
 
@@ -14,5 +16,9 @@ public class CategoriaService {
     public Categoria buscarPorId(Long id) {
         return categoriaRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Categoría no encontrada con id: " + id));
+    }
+
+    public List<Categoria> obtenerTodas() {
+        return categoriaRepository.findAll();
     }
 }
