@@ -111,12 +111,10 @@ public class AuthController {
     }
     
     @GetMapping("/test")
-    public ResponseEntity<?> test() {
-        return ResponseEntity.ok(Map.of(
-            "message", "✅ Endpoint de prueba accesible"
-
-        ));
+    public String test() {
+        return "✅ Endpoint de prueba accesible";
     }
+
 
     // -------------------------------
     // Conversión DTO → Entidad
