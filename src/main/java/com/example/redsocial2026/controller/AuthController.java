@@ -109,6 +109,14 @@ public class AuthController {
             return ResponseEntity.status(403).body(Map.of("message", "Usuario deshabilitado"));
         }
     }
+    
+    @GetMapping("/test")
+    public ResponseEntity<?> test() {
+        return ResponseEntity.ok(Map.of(
+            "message", "✅ Endpoint de prueba accesible"
+
+        ));
+    }
 
     // -------------------------------
     // Conversión DTO → Entidad
