@@ -12,11 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.*;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -35,8 +36,11 @@ public class AuthController {
     @Autowired
     private RolRepository rolRepository;
 
+    @Autowired
+    private UserDetailsService userDetailsService;
+
     // -------------------------------
-    // Registro de usuario
+    // Registro de usuario + login automático
     // -------------------------------
     @PostMapping("/register")
     public ResponseEntity<?> registrar(@Valid @RequestBody UsuarioDTO usuarioDTO) {
@@ -44,8 +48,26 @@ public class AuthController {
             Usuario usuario = convertToEntity(usuarioDTO);
             Usuario saved = usuarioService.guardarUsuario(usuario);
 
-            // Retornar solo datos del usuario, sin JWT
-            return ResponseEntity.ok(convertToDTO(saved));
+            // Autenticación automática
+            UserDetails userDetails = userDetailsService.loadUserByUsername(saved.getUsername());
+            UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+
+            // Generar token JWT
+            String token = jwtTokenUtil.generateToken(saved.getId(), saved.getUsername(), saved.getEmail());
+
+            // Preparar respuesta
+            Map<String, Object> response = new HashMap<>();
+            response.put("token", token);
+            response.put("usuario", saved.getUsername());
+            response.put("id", saved.getId());
+            response.put("email", saved.getEmail());
+            response.put("roles", saved.getRoles().stream()
+                    .map(Rol::getNombre)
+                    .collect(Collectors.toSet()));
+
+            return ResponseEntity.ok(response);
 
         } catch (DataIntegrityViolationException e) {
             return ResponseEntity
@@ -75,6 +97,9 @@ public class AuthController {
             response.put("usuario", u.getUsername());
             response.put("id", u.getId());
             response.put("email", u.getEmail());
+            response.put("roles", u.getRoles().stream()
+                    .map(Rol::getNombre)
+                    .collect(Collectors.toSet()));
 
             return ResponseEntity.ok(response);
 
@@ -83,14 +108,6 @@ public class AuthController {
         } catch (DisabledException e) {
             return ResponseEntity.status(403).body(Map.of("message", "Usuario deshabilitado"));
         }
-    }
-
-    // -------------------------------
-    // Endpoint de prueba
-    // -------------------------------
-    @GetMapping("/test")
-    public String test() {
-        return "API segura funcionando con JWT!";
     }
 
     // -------------------------------
@@ -107,19 +124,5 @@ public class AuthController {
         u.setRoles(Set.of(rolUsuario));
 
         return u;
-    }
-
-    // -------------------------------
-    // Conversión Entidad → DTO
-    // -------------------------------
-    private UsuarioDTO convertToDTO(Usuario u) {
-        UsuarioDTO dto = new UsuarioDTO();
-        dto.setId(u.getId());
-        dto.setUsername(u.getUsername());
-        dto.setEmail(u.getEmail());
-        dto.setRoles(u.getRoles().stream()
-                .map(r -> r.getNombre())
-                .collect(Collectors.toSet()));
-        return dto;
     }
 }
