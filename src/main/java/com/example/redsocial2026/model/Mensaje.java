@@ -28,10 +28,10 @@ public class Mensaje {
     @Column(nullable = false, updatable = false)
     private LocalDateTime date;
 
-    // Mensaje del post
+    // Contenido del mensaje
     @Column(nullable = false, columnDefinition = "TEXT")
     @NotBlank(message = "El mensaje no puede estar vacío")
-    private String mensaje;
+    private String contenido;
 
     // Se ejecuta automáticamente antes de insertar por primera vez
     @PrePersist

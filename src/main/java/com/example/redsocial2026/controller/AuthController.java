@@ -112,7 +112,7 @@ public class AuthController {
     
     @GetMapping("/test")
     public String test() {
-        return "✅ Endpoint de prueba accesible";
+        return "✅ Endpoint de pruebas accesible";
     }
 
 

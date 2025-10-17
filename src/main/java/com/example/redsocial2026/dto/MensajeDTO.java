@@ -9,13 +9,11 @@ public class MensajeDTO {
     private Long id;
 
     @NotBlank(message = "El mensaje no puede estar vacío")
-    private String mensaje;
+    private String contenido;
 
-    private Long topicId;
-    private String topicNombre;
+    private TopicDTO topic;
 
-    private Long usuarioId;
-    private String usuarioNombre;
+    private UsuarioDTO usuario;
 
     private LocalDateTime date;
 }
