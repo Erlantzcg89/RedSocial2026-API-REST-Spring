@@ -64,6 +64,21 @@ public class ForoController {
         }
     }
     
+    @GetMapping("/topics/{id}")
+    public ResponseEntity<?> obtenerTopicPorId(@PathVariable Long id) {
+        try {
+            Topic topic = topicService.buscarPorId(id);
+            if (topic == null) {
+                return ResponseEntity.notFound().build();
+            }
+            TopicDTO topicDTO = convertToTopicDTO(topic);
+            return ResponseEntity.ok(topicDTO);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    
  // Listar mensajes
     @GetMapping("/mensajes")
     public ResponseEntity<?> listarMensajes() {
