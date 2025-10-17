@@ -22,4 +22,8 @@ public class TopicService {
     public List<Topic> obtenerTodos() {
         return topicRepository.findAll();
     }
+    
+    public Topic guardarTopic(Topic topic) {
+        return topicRepository.save(topic);
+    }
 }

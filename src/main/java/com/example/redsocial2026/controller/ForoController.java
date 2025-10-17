@@ -77,6 +77,34 @@ public class ForoController {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
+    
+    @PostMapping("/topic")
+    public ResponseEntity<?> crearTopic(@RequestBody TopicDTO topicDTO) {
+        try {
+            // Obtener la categoría por ID
+            Categoria categoria = categoriaService.buscarPorId(topicDTO.getCategoria().getId());
+            if (categoria == null) {
+                return ResponseEntity.badRequest().body(Map.of("message", "Categoría no encontrada"));
+            }
+
+            // Crear la entidad Topic
+            Topic topic = new Topic();
+            topic.setNombre(topicDTO.getNombre());
+            topic.setCategoria(categoria);
+
+            // Guardar en la base de datos
+            Topic savedTopic = topicService.guardarTopic(topic);
+
+            // Convertir a DTO para la respuesta
+            TopicDTO responseDTO = convertToTopicDTO(savedTopic);
+
+            return ResponseEntity.ok(responseDTO);
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
 
     
  // Listar mensajes
