@@ -2,14 +2,21 @@
 package com.example.redsocial2026.controller;
 
 import com.example.redsocial2026.dto.CategoriaDTO;
+import com.example.redsocial2026.dto.MensajeDTO;
 import com.example.redsocial2026.dto.TopicDTO;
+import com.example.redsocial2026.dto.UsuarioDTO;
 import com.example.redsocial2026.model.Categoria;
+import com.example.redsocial2026.model.Mensaje;
 import com.example.redsocial2026.model.Topic;
+import com.example.redsocial2026.model.Usuario;
 import com.example.redsocial2026.service.CategoriaService;
+import com.example.redsocial2026.service.MensajeService;
 import com.example.redsocial2026.service.TopicService;
+import com.example.redsocial2026.service.UsuarioService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,6 +31,12 @@ public class ForoController {
 
     @Autowired
     private TopicService topicService;
+    
+    @Autowired
+    private MensajeService mensajeService;
+    
+    @Autowired
+    private UsuarioService usuarioService;
 
     @GetMapping("/categorias")
     public ResponseEntity<?> listarCategorias() {
@@ -50,6 +63,50 @@ public class ForoController {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
+    
+ // Listar mensajes
+    @GetMapping("/mensajes")
+    public ResponseEntity<?> listarMensajes() {
+        try {
+            List<MensajeDTO> mensajesDTO = mensajeService.obtenerTodosMensajes()
+                    .stream()
+                    .map(this::convertToMensajeDTO)
+                    .toList();
+            return ResponseEntity.ok(mensajesDTO);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+    
+    @PostMapping("/mensaje")
+    public ResponseEntity<?> crearMensaje(@RequestBody MensajeDTO mensajeDTO) {
+        try {
+            // Buscar el topic por ID
+            Topic topic = topicService.buscarPorId(mensajeDTO.getTopic().getId());
+
+            // Obtener el usuario autenticado
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            Usuario usuario = usuarioService.buscarPorUsername(username);
+
+            // Crear la entidad Mensaje
+            Mensaje mensaje = new Mensaje();
+            mensaje.setContenido(mensajeDTO.getContenido());
+            mensaje.setTopic(topic);
+            mensaje.setUsuario(usuario);
+
+            // Guardar en la base de datos
+            Mensaje savedMensaje = mensajeService.guardarMensaje(mensaje);
+
+            // Convertir a DTO para la respuesta
+            MensajeDTO responseDTO = convertToMensajeDTO(savedMensaje);
+
+            return ResponseEntity.ok(responseDTO);
+
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
 
     // Conversores
     private CategoriaDTO convertToCategoriaDTO(Categoria categoria) {
@@ -70,6 +127,41 @@ public class ForoController {
             categoriaDTO.setId(categoria.getId());
             categoriaDTO.setNombre(categoria.getNombre());
             dto.setCategoria(categoriaDTO);
+        }
+
+        return dto;
+    }
+    
+    private MensajeDTO convertToMensajeDTO(Mensaje mensaje) {
+        MensajeDTO dto = new MensajeDTO();
+        dto.setId(mensaje.getId());
+        dto.setContenido(mensaje.getContenido());
+        dto.setDate(mensaje.getDate());
+
+        // Topic
+        Topic topic = mensaje.getTopic();
+        if (topic != null) {
+            TopicDTO topicDTO = new TopicDTO();
+            topicDTO.setId(topic.getId());
+            topicDTO.setNombre(topic.getNombre());
+
+            if (topic.getCategoria() != null) {
+                CategoriaDTO catDTO = new CategoriaDTO();
+                catDTO.setId(topic.getCategoria().getId());
+                catDTO.setNombre(topic.getCategoria().getNombre());
+                topicDTO.setCategoria(catDTO);
+            }
+
+            dto.setTopic(topicDTO);
+        }
+
+        // Usuario
+        if (mensaje.getUsuario() != null) {
+            UsuarioDTO usuarioDTO = new UsuarioDTO();
+            usuarioDTO.setId(mensaje.getUsuario().getId());
+            usuarioDTO.setUsername(mensaje.getUsuario().getUsername());
+            usuarioDTO.setEmail(mensaje.getUsuario().getEmail());
+            dto.setUsuario(usuarioDTO);
         }
 
         return dto;
