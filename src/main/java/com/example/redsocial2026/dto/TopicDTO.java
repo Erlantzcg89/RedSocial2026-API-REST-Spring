@@ -10,6 +10,5 @@ public class TopicDTO {
     @NotBlank(message = "El nombre del topic no puede estar vacío")
     private String nombre;
 
-    private Long categoriaId;
-    private String categoriaNombre; // opcional
+    private CategoriaDTO categoria;
 }

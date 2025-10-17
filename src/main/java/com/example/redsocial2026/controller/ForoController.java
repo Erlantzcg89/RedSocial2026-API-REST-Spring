@@ -63,8 +63,16 @@ public class ForoController {
         TopicDTO dto = new TopicDTO();
         dto.setId(topic.getId());
         dto.setNombre(topic.getNombre());
-        dto.setCategoriaId(topic.getCategoria().getId());
-        dto.setCategoriaNombre(topic.getCategoria().getNombre());
+
+        Categoria categoria = topic.getCategoria();
+        if (categoria != null) {
+            CategoriaDTO categoriaDTO = new CategoriaDTO();
+            categoriaDTO.setId(categoria.getId());
+            categoriaDTO.setNombre(categoria.getNombre());
+            dto.setCategoria(categoriaDTO);
+        }
+
         return dto;
     }
+
 }
